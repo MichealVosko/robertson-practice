@@ -1,0 +1,11 @@
+pypdf
+pandas
+dotenv
+langchain
+langchain_core
+langchain_community
+langchain_google_genai
+sentence_transformers
+openpyxl
+streamlit
+uvicorn
