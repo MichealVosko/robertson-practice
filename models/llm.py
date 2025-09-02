@@ -3,13 +3,11 @@ from pydantic import BaseModel, Field
 from typing import List, Annotated
 from dotenv import load_dotenv
 import os
-import streamlit as st
 load_dotenv()
-api_key = st.secrets.get("GEMINI_API_KEY", os.getenv("GEMINI_API_KEY"))
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash",
-    google_api_key=api_key
+    google_api_key=os.getenv("GOOGLE_API_KEY")
 )
 
 # Structured output for CPT
