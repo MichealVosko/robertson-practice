@@ -3,8 +3,6 @@ import numpy as np
 from typing import List, Dict, Any
 ## This file only contains embedding logic, ICD store builder, and rerank function.
 
-__all__ = ["embed_texts", "build_icd_embedding_store", "rerank_icd_candidates"]
-
 # Load MedEmbed model once (cached)
 embedder = SentenceTransformer("abhinand/MedEmbed-large-v0.1")
 
