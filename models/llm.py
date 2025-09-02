@@ -1,9 +1,9 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from pydantic import BaseModel, Field
 from typing import List, Annotated
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 import os
-# load_dotenv()
+load_dotenv()
 
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash",
