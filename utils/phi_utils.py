@@ -80,5 +80,20 @@ def get_phi(note_text: str) -> dict:
                 code = code[:-1]
             cleaned_codes.append(code)
         details["Diagnosis Codes"] = list(set(cleaned_codes))
+        
+    
+    location_match = re.search(r"(Location|Clinic|Hospital|Center|LLC|LLP|PC)[:\-]?\s*(.+)", note_text, re.IGNORECASE)
+    if location_match:
+        details["Location"] = location_match.group(2).strip()
+    else:
+        details["Location"] = ""
+
+    # Map Location to POS/Modifier
+    if re.search(r"telehealth|virtual|video", details["Location"], re.IGNORECASE):
+        details["POS"] = "10"
+        details["Modifier"] = "95"
+    else:
+        details["POS"] = "11"
+        details["Modifier"] = ""
 
     return details
