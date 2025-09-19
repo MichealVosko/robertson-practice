@@ -105,7 +105,7 @@ if uploaded_files:
             "Client Name",
             "DOB",
             "Service Code",
-            "Primary Diagnosis",
+
             "Service Description",
             "Clinician Name",
             "POS",
