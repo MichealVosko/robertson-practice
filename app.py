@@ -11,7 +11,7 @@ from models.embeddings import (
     rerank_icd_candidates,
 )
 from utils.validation_utils import check_note
-from utils.phi_utils import get_phi
+from utils.phi_utils import get_phi, ceilling_value
 
 
 cpt_icd_mapping_df = pd.read_excel("data/Expanded_CPT_to_ICD_mapping.xlsx")
@@ -62,6 +62,16 @@ if uploaded_files:
                 if validation_result["missing_sections"]
                 else ""
             )
+            
+            cpt_with_units = []
+            for cpt in predicted_cpts:
+                if cpt == "H0004" and phi_data.get("Duration"):
+                    units = ceilling_value(phi_data["Duration"])
+                    cpt_with_units.append(f"{cpt} x{units}")
+                else:
+                    cpt_with_units.append(cpt)
+                    
+
             row = {
                 "Date": phi_data.get("Date", ""),
                 "Appointment Type": "Therapy Session",
@@ -85,7 +95,7 @@ if uploaded_files:
                 "Clinician Name": phi_data.get("Clinician", ""),
                 "POS": phi_data.get("POS", ""),
                 "Modifier": phi_data.get("Modifier", ""),
-                "Coding": f"{', '.join(predicted_cpts)}--{', '.join(final_selection['final'])}",
+                "Coding": f"{', '.join(cpt_with_units)}--{', '.join(final_selection['final'])}",
                 "Note Status": "Pending",
                 "Status": "On Hold",
                 "Comments": comments_str,

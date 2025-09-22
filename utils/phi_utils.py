@@ -1,4 +1,5 @@
 import re
+import math
 from datetime import datetime
 
 
@@ -97,3 +98,9 @@ def get_phi(note_text: str) -> dict:
         details["Modifier"] = ""
 
     return details
+
+
+def ceilling_value(duration: str):
+    print(type(duration))
+    duration = int(duration.split()[0])
+    return math.ceil(duration / 15)
