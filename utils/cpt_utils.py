@@ -1,5 +1,5 @@
 import pandas as pd
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from models.llm import structured_llm
 
 cpt_prediction_prompt = """You are a medical coding assistant.
