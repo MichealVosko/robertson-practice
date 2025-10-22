@@ -2,7 +2,7 @@ import numpy as np
 from typing import List, Dict, Any
 from models.embeddings import embed_texts
 from models.llm import icd_structured_llm
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 
 def get_icd_candidates(predicted_cpt_codes: list[str], cpt_mapping: dict) -> list[dict]:
     icd_candidates = []
