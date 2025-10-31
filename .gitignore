@@ -16,3 +16,5 @@ outputs/
 Thumbs.db
 .history/
 .env
+*.pdf
+*.ipynb
