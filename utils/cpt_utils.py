@@ -13,11 +13,15 @@ Allowed CPTs:
 - H0004: Behavioral health counseling and therapy, per 15 minutes
 - 96130: Psychological testing evaluation services, first hour
 - 96131: Psychological testing evaluation services, each additional hour
+- 90839: Psychotherapy for crisis; first 60 minutes (Time range: 30–74 minutes)
+
 
 Examples:
 Note: "Patient presented for initial psychiatric diagnostic interview..." → CPT: 90791
 Note: "Session lasted 60 minutes, focused on psychotherapy..." → CPT: 90837
 Note: "Behavioral therapy session lasted 15 minutes..." → CPT: H0004
+Note: "Patient in acute crisis, session lasted 45 minutes addressing suicidal ideation..." → CPT: 90839
+
 
 Now classify the following clinical note and return the result in the specified JSON format:
 {soap_note}

@@ -1,7 +1,9 @@
 import streamlit as st
 import pandas as pd
 import io
+import re
 import os
+import math
 from utils.pdf_utils import load_pdf, deidentify_and_strip
 from utils.cpt_utils import predict_cpt_code, get_cpt_mapping
 from utils.icd_utils import get_icd_candidates, select_icds_for_note
@@ -65,9 +67,20 @@ if uploaded_files:
             
             cpt_with_units = []
             for cpt in predicted_cpts:
-                if cpt == "H0004" and phi_data.get("Duration"):
-                    units = ceilling_value(phi_data["Duration"])
+                duration_str = phi_data.get("Duration")
+                if cpt == "H0004" and duration_str:
+                    units = ceilling_value(duration_str)
                     cpt_with_units.append(f"{cpt} x{units}")
+                elif cpt == "90839" and duration_str:
+                    duration_match = re.search(r"(\d+)", duration_str)
+                    if duration_match:
+                        duration_min = int(duration_match.group(1))
+                        if duration_min > 74:
+                            extra_minutes = duration_min - 74
+                            extra_units = math.ceil(extra_minutes / 30)    
+                            cpt_with_units.append(f"{cpt}")
+                            cpt_with_units.append(f"90840 x{extra_units}")
+                            
                 else:
                     cpt_with_units.append(cpt)
                     
