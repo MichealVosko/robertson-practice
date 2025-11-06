@@ -18,3 +18,4 @@ Thumbs.db
 .env
 *.pdf
 *.ipynb
+*.xlsx
