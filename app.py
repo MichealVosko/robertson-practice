@@ -47,6 +47,8 @@ if uploaded_files:
             clean = deidentify_and_strip(text)
             phi_data = get_phi(text)
             predicted_cpts = predict_cpt_code(clean)
+            if "90840" in predicted_cpts and "90839" not in predicted_cpts:
+                predicted_cpts.remove("90840")
             icd_candidates = get_icd_candidates(predicted_cpts, cpt_mapping)
             ranked_icds = rerank_icd_candidates(
                 clean,
@@ -68,22 +70,21 @@ if uploaded_files:
             cpt_with_units = []
             for cpt in predicted_cpts:
                 duration_str = phi_data.get("Duration")
+                entry = cpt
+                
                 if cpt == "H0004" and duration_str:
                     units = ceilling_value(duration_str)
-                    cpt_with_units.append(f"{cpt} x{units}")
-                elif cpt == "90839" and duration_str:
+                    entry = f"{cpt} x{units}"
+                
+                cpt_with_units.append(entry)
+                if cpt == "90839" and duration_str:
                     duration_match = re.search(r"(\d+)", duration_str)
                     if duration_match:
                         duration_min = int(duration_match.group(1))
                         if duration_min > 74:
                             extra_minutes = duration_min - 74
                             extra_units = math.ceil(extra_minutes / 30)    
-                            cpt_with_units.append(f"{cpt}")
-                            cpt_with_units.append(f"90840 x{extra_units}")
-                            
-                else:
-                    cpt_with_units.append(cpt)
-                    
+                            cpt_with_units.append(f"90840 x{extra_units}")                    
 
             row = {
                 "Date": phi_data.get("Date", ""),
