@@ -3,11 +3,27 @@ import pandas as pd
 import io
 import os
 from utils.data_utils import load_mappings, build_embeddings
-from utils.file_processing import process_file
+from utils.file_utils import process_file
 
 
 cpt_icd_mapping_df, cpt_mapping = load_mappings()
 icd_embedding_store = build_embeddings(cpt_icd_mapping_df)
+
+HEADERS = [
+    "Date",
+    "Appointment Type",
+    "Client Name",
+    "DOB",
+    "Service Code",
+    "Service Description",
+    "Clinician Name",
+    "POS",
+    "Modifier",
+    "Coding",
+    "Note Status",
+    "Status",
+    "Comments",
+]
 
 st.title("Robertson Practice")
 
@@ -41,25 +57,9 @@ if uploaded_files:
                 f"Processing file {idx} of {total_files}: {uploaded_file.name}"
             )
 
-        headers = [
-            "Date",
-            "Appointment Type",
-            "Client Name",
-            "DOB",
-            "Service Code",
+        
 
-            "Service Description",
-            "Clinician Name",
-            "POS",
-            "Modifier",
-            "Coding",
-            "Note Status",
-            "Status",
-            "Comments",
-            
-        ]
-
-        st.session_state.results_df = pd.DataFrame(results, columns=headers)
+        st.session_state.results_df = pd.DataFrame(results, columns=HEADERS)
         st.session_state.last_files = [f.name for f in uploaded_files]
 
     # Use cached results
