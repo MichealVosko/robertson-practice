@@ -82,7 +82,7 @@ if uploaded_files:
                     if duration_match:
                         duration_min = int(duration_match.group(1))
                         if duration_min > 74:
-                            extra_minutes = duration_min - 74
+                            extra_minutes = max(duration_min - 53)
                             extra_units = math.ceil(extra_minutes / 30)    
                             cpt_with_units.append(f"90840 x{extra_units}")                    
 
