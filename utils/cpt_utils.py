@@ -1,4 +1,6 @@
 import pandas as pd
+import re
+import math
 from langchain_core.prompts import PromptTemplate
 from models.llm import structured_llm
 
@@ -50,3 +52,46 @@ def get_cpt_mapping(df: pd.DataFrame):
             cpt_mapping[cpt] = {"description": row["CPT Description"], "applicable_icds": []}
         cpt_mapping[cpt]["applicable_icds"].append({icd: row["ICD-10 Description"]})
     return cpt_mapping
+
+
+def calculate_cpt_units(predicted_cpts, duration_str):
+    """
+    Returns a list of CPTs with units where applicable.
+    Handles H0004 and 90839/90840 logic.
+    """
+    cpt_with_units = []
+
+    # Extract numeric duration in minutes if available
+    duration_min = None
+    if duration_str:
+        match = re.search(r"(\d+)", duration_str)
+        if match:
+            duration_min = int(match.group(1))
+
+    for cpt in predicted_cpts:
+        # Default: just add the code
+        entry = cpt
+
+        # H0004: units based on duration
+        if cpt == "H0004" and duration_min is not None:
+            units = math.ceil(duration_min / 15)
+            entry = f"{cpt} x{units}"
+
+        cpt_with_units.append(entry)
+
+        # 90839/90840 logic
+        if cpt == "90839" and duration_min is not None:
+            # Always add 90839
+            entry_90839 = "90839"
+            if entry_90839 not in cpt_with_units:
+                cpt_with_units.append(entry_90839)
+
+            # Calculate extra units for 90840
+            extra_minutes = max(
+                0, duration_min - 53
+            )  # base threshold for initial session
+            if extra_minutes > 0:
+                extra_units = math.ceil(extra_minutes / 30)
+                cpt_with_units.append(f"90840 x{extra_units}")
+
+    return cpt_with_units

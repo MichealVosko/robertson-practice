@@ -1,11 +1,9 @@
 import streamlit as st
 import pandas as pd
 import io
-import re
 import os
-import math
 from utils.pdf_utils import load_pdf, deidentify_and_strip
-from utils.cpt_utils import predict_cpt_code, get_cpt_mapping
+from utils.cpt_utils import predict_cpt_code, get_cpt_mapping, calculate_cpt_units
 from utils.icd_utils import get_icd_candidates, select_icds_for_note
 from models.embeddings import (
     embed_texts,
@@ -13,7 +11,7 @@ from models.embeddings import (
     rerank_icd_candidates,
 )
 from utils.validation_utils import check_note
-from utils.phi_utils import get_phi, ceilling_value
+from utils.phi_utils import get_phi
 
 
 cpt_icd_mapping_df = pd.read_excel("data/Expanded_CPT_to_ICD_mapping.xlsx")
@@ -67,24 +65,8 @@ if uploaded_files:
                 else ""
             )
             
-            cpt_with_units = []
-            for cpt in predicted_cpts:
-                duration_str = phi_data.get("Duration")
-                entry = cpt
-                
-                if cpt == "H0004" and duration_str:
-                    units = ceilling_value(duration_str)
-                    entry = f"{cpt} x{units}"
-                
-                cpt_with_units.append(entry)
-                if cpt == "90839" and duration_str:
-                    duration_match = re.search(r"(\d+)", duration_str)
-                    if duration_match:
-                        duration_min = int(duration_match.group(1))
-                        if duration_min > 74:
-                            extra_minutes = max(duration_min - 53)
-                            extra_units = math.ceil(extra_minutes / 30)    
-                            cpt_with_units.append(f"90840 x{extra_units}")                    
+            duration_str = phi_data.get("Duration")
+            cpt_with_units = calculate_cpt_units(predicted_cpts, duration_str)                
 
             row = {
                 "Date": phi_data.get("Date", ""),
