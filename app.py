@@ -83,11 +83,11 @@ if uploaded_files:
         file_name=custom_name,
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     ):
-        # ✅ Clear session state after download
+        # Clear session state after download
         st.session_state.pop("results_df", None)
         st.session_state.pop("last_files", None)
 
-        # ✅ Optionally delete files from data/ folder
+        # Optionally delete files from data/ folder
         for f in os.listdir("data"):
             if f.endswith(".pdf"):
                 try:
