@@ -71,17 +71,21 @@ def get_phi(note_text: str) -> dict:
         diagnosis_section = diagnosis_section[:stop_match.start()]
     
     if diagnosis_section:
-        icd_pattern = r"\b([A-TV-Z][0-9]{2}(?:\.[0-9A-Z]{1,4})?)"
+        diagnosis_section = re.sub(
+            r"([0-9])([A-Z])", r"\1 \2", diagnosis_section
+        )
+
+        # Extract ICD-10 codes
+        icd_pattern = r"([A-TV-Z][0-9]{2}(?:\.[0-9A-Z]{1,4})?)"
         diagnosis_codes = list(set(re.findall(icd_pattern, diagnosis_section)))
-    
-    if diagnosis_codes:
+
+        # Optional: remove trailing letters if accidentally captured
         cleaned_codes = []
         for code in diagnosis_codes:
             if re.match(r".*[A-Z]$", code):
                 code = code[:-1]
             cleaned_codes.append(code)
-        details["Diagnosis Codes"] = list(set(cleaned_codes))
-        
+        details["Diagnosis Codes"] = list(set(cleaned_codes))[::-1]
     
     location_match = re.search(r"(Location|Clinic|Hospital|Center|LLC|LLP|PC)[:\-]?\s*(.+)", note_text, re.IGNORECASE)
     if location_match:
