@@ -51,7 +51,7 @@ def calculate_code_units(code, time):
     if code == "96139":
         return custom_round(time / 30)
     elif code == "96131":
-        return custom_round((time - 60) / 60)
+        return custom_round(time  / 60)
     else:
         return 1
 
