@@ -2,12 +2,9 @@ import streamlit as st
 import pandas as pd
 import io
 import os
-from utils.data_utils import load_mappings, build_embeddings
 from utils.file_utils import process_file
+from utils.data_utils import load_mappings
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
-cpt_icd_mapping_df, cpt_mapping = load_mappings()
-icd_embedding_store = build_embeddings(cpt_icd_mapping_df)
 
 HEADERS = [
     "Date",
@@ -31,7 +28,9 @@ uploaded_files = st.file_uploader(
     "Upload one or more SOAP notes (PDFs)", type="pdf", accept_multiple_files=True
 )
 
-# If files uploaded, process them
+# Load CPT to ICD mapping (used only for CPT descriptions)
+cpt_icd_mapping_df = load_mappings()  # second value is ignored
+
 if uploaded_files:
     # Clear previous session if file list changes
     if st.session_state.get("last_files") != [f.name for f in uploaded_files]:
@@ -43,14 +42,15 @@ if uploaded_files:
         total_files = len(uploaded_files)
         progress_bar = st.progress(0)
         status_text = st.empty()
-        
-        def process_file_wrapper(uploaded_file):
-            return process_file(
-                uploaded_file, cpt_mapping, cpt_icd_mapping_df, icd_embedding_store
-            )
 
+        def process_file_wrapper(uploaded_file):
+            return process_file(uploaded_file, cpt_icd_mapping_df)
+
+        # Parallel processing
         with ThreadPoolExecutor(max_workers=8) as executor:
-            futures = {executor.submit(process_file_wrapper, f): f.name for f in uploaded_files}
+            futures = {
+                executor.submit(process_file_wrapper, f): f.name for f in uploaded_files
+            }
             completed = 0
             for future in as_completed(futures):
                 results.append(future.result())
@@ -61,13 +61,13 @@ if uploaded_files:
         st.session_state.results_df = pd.DataFrame(results, columns=HEADERS)
         st.session_state.last_files = [f.name for f in uploaded_files]
 
-    # Use cached results
+    # Display results
     results_df = st.session_state.results_df
     st.subheader("Results Summary")
     st.dataframe(results_df, use_container_width=True)
 
-    # Custom filename
-    default_filename = "robertson_coding_solved"
+    # Custom filename for download
+    default_filename = "robertson_coding_solved.xlsx"
     custom_name = st.text_input("Rename Excel file:", value=default_filename)
     if not custom_name.endswith(".xlsx"):
         custom_name += ".xlsx"
@@ -77,7 +77,7 @@ if uploaded_files:
         results_df.to_excel(writer, index=False, sheet_name="Results")
 
     if st.download_button(
-        label="📥 Download Results as Excel",
+        label="Download Results as Excel",
         data=buffer.getvalue(),
         file_name=custom_name,
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -86,7 +86,7 @@ if uploaded_files:
         st.session_state.pop("results_df", None)
         st.session_state.pop("last_files", None)
 
-        # Optionally delete files from data/ folder
+        # Delete uploaded PDF files
         for f in os.listdir("data"):
             if f.endswith(".pdf"):
                 try:
