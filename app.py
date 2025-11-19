@@ -4,7 +4,7 @@ import io
 import os
 from utils.data_utils import load_mappings, build_embeddings
 from utils.file_utils import process_file
-
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 cpt_icd_mapping_df, cpt_mapping = load_mappings()
 icd_embedding_store = build_embeddings(cpt_icd_mapping_df)
@@ -43,21 +43,20 @@ if uploaded_files:
         total_files = len(uploaded_files)
         progress_bar = st.progress(0)
         status_text = st.empty()
-
-        for idx, uploaded_file in enumerate(uploaded_files, start=1):
-            row = process_file(
+        
+        def process_file_wrapper(uploaded_file):
+            return process_file(
                 uploaded_file, cpt_mapping, cpt_icd_mapping_df, icd_embedding_store
             )
 
-            results.append(row)
-
-            progress = idx / total_files
-            progress_bar.progress(progress)
-            status_text.text(
-                f"Processing file {idx} of {total_files}: {uploaded_file.name}"
-            )
-
-        
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            futures = {executor.submit(process_file_wrapper, f): f.name for f in uploaded_files}
+            completed = 0
+            for future in as_completed(futures):
+                results.append(future.result())
+                completed += 1
+                progress_bar.progress(completed / total_files)
+                status_text.text(f"Processed {completed} of {total_files} files.")
 
         st.session_state.results_df = pd.DataFrame(results, columns=HEADERS)
         st.session_state.last_files = [f.name for f in uploaded_files]
