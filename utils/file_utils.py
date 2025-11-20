@@ -60,7 +60,8 @@ def process_file(uploaded_file, cpt_icd_mapping_df):
             name.lower() in clinician_name.lower() for name in medicaid_clinicians
         )
         if service_code == "90837" and is_medicaid_clinician:
-            comments_str += " | Verify the H0004 with Medicaid guidelines."
+            note = "Verify the H0004 with Medicaid guidelines."
+            comments_str = f"{comments_str} | {note}" if comments_str else note
 
         # Duration & CPT units
         duration_str = phi_data.get("Duration")
