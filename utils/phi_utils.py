@@ -87,9 +87,12 @@ def get_phi(note_text: str) -> dict:
             cleaned_codes.append(code)
         details["Diagnosis Codes"] = list(set(cleaned_codes))[::-1]
     
-    location_match = re.search(r"(Location|Clinic|Hospital|Center|LLC|LLP|PC)[:\-]?\s*(.+)", note_text, re.IGNORECASE)
+    location_match = re.search(
+            r"^Location[:\-]?\s*(.*)$", note_text, re.IGNORECASE | re.MULTILINE
+        )
+
     if location_match:
-        details["Location"] = location_match.group(2).strip()
+        details["Location"] = location_match.group(1).strip()
     else:
         details["Location"] = ""
 
