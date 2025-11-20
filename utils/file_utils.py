@@ -53,7 +53,7 @@ def process_file(uploaded_file, cpt_icd_mapping_df):
             else ""
         )
         
-        clinician_name = phi_data.get("Clinician", "")
+        clinician_name = phi_data.get("Clinician", "") or ""
         medicaid_clinicians = ["Kayla", "Kaeli", "Virginia", "Courtney"]
         
         is_medicaid_clinician = any(
