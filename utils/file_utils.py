@@ -52,6 +52,15 @@ def process_file(uploaded_file, cpt_icd_mapping_df):
             if validation_result["missing_sections"]
             else ""
         )
+        
+        clinician_name = phi_data.get("Clinician", "")
+        medicaid_clinicians = ["Kayla", "Kaeli", "Virginia", "Courtney"]
+        
+        is_medicaid_clinician = any(
+            name.lower() in clinician_name.lower() for name in medicaid_clinicians
+        )
+        if service_code == "90837" and is_medicaid_clinician:
+            comments_str += " | Verify the H0004 with Medicaid guidelines."
 
         # Duration & CPT units
         duration_str = phi_data.get("Duration")
