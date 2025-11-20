@@ -1,13 +1,11 @@
 from utils.pdf_utils import load_pdf, deidentify_and_strip
 from utils.cpt_utils import predict_cpt_code, calculate_cpt_units
-from utils.icd_utils import get_icd_candidates, select_icds_for_note
-from models.embeddings import rerank_icd_candidates
 from utils.validation_utils import check_note
 from utils.phi_utils import get_phi
 from utils.psych_eval_utils import extract_psych_eval_data
 
 
-def process_file(uploaded_file, cpt_mapping, cpt_icd_mapping_df, icd_embedding_store):
+def process_file(uploaded_file, cpt_icd_mapping_df):
     file_path = f"data/{uploaded_file.name}"
     with open(file_path, "wb") as f:
         f.write(uploaded_file.read())
@@ -31,12 +29,11 @@ def process_file(uploaded_file, cpt_mapping, cpt_icd_mapping_df, icd_embedding_s
         if not service_desc_df.empty:
             service_descriptions.append(service_desc_df["CPT Description"].iloc[0])
 
-        # Build coding string using phi diagnosis codes
-        unit_str = f"{units}X" if units > 0 else ""
+        # ICD codes from chart
         diagnosis_codes = phi_data.get("Diagnosis Codes", [])
+        unit_str = f"{units}X" if units > 0 else ""
         row_coding = f"{service_code}--{unit_str}--{', '.join(diagnosis_codes)}"
 
-        # Comments
         comments_str = "Check portal for evaluation file"
 
     else:
@@ -45,12 +42,8 @@ def process_file(uploaded_file, cpt_mapping, cpt_icd_mapping_df, icd_embedding_s
         if "90840" in predicted_cpts and "90839" not in predicted_cpts:
             predicted_cpts.remove("90840")
 
-        # ICD selection
-        icd_candidates = get_icd_candidates(predicted_cpts, cpt_mapping)
-        ranked_icds = rerank_icd_candidates(
-            clean, icd_candidates, icd_embedding_store, top_k=5
-        )
-        final_selection = select_icds_for_note(clean, predicted_cpts, ranked_icds)
+        # ICD extraction from chart
+        diagnosis_codes = phi_data.get("Diagnosis Codes", [])
 
         # Note validation
         validation_result = check_note(clean, uploaded_file.name)
@@ -59,6 +52,16 @@ def process_file(uploaded_file, cpt_mapping, cpt_icd_mapping_df, icd_embedding_s
             if validation_result["missing_sections"]
             else ""
         )
+        
+        clinician_name = phi_data.get("Clinician", "") or ""
+        medicaid_clinicians = ["Kayla", "Kaeli", "Virginia", "Courtney"]
+        
+        is_medicaid_clinician = any(
+            name.lower() in clinician_name.lower() for name in medicaid_clinicians
+        )
+        if service_code == "90837" and is_medicaid_clinician:
+            note = "Verify the H0004 with Medicaid guidelines."
+            comments_str = f"{comments_str} | {note}" if comments_str else note
 
         # Duration & CPT units
         duration_str = phi_data.get("Duration")
@@ -74,9 +77,7 @@ def process_file(uploaded_file, cpt_mapping, cpt_icd_mapping_df, icd_embedding_s
                 service_descriptions.append(service_desc_df["CPT Description"].iloc[0])
 
         # Build coding string using predicted CPT units and ICDs
-        row_coding = (
-            f"{', '.join(cpt_with_units)}--{', '.join(final_selection['final'])}"
-        )
+        row_coding = f"{', '.join(cpt_with_units)}--{', '.join(diagnosis_codes)}"
 
     # Build row dictionary
     row = {
@@ -85,7 +86,7 @@ def process_file(uploaded_file, cpt_mapping, cpt_icd_mapping_df, icd_embedding_s
         "Client Name": phi_data.get("Patient", ""),
         "DOB": phi_data.get("DOB", ""),
         "Service Code": service_code,
-        "Primary Diagnosis": ", ".join(phi_data.get("Diagnosis Codes", [])),
+        "Primary Diagnosis": ", ".join(diagnosis_codes),
         "Service Description": ", ".join(service_descriptions)
         if service_descriptions
         else "",

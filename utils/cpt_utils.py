@@ -1,4 +1,3 @@
-import pandas as pd
 import re
 import math
 from langchain_core.prompts import PromptTemplate
@@ -42,17 +41,6 @@ def predict_cpt_code(soap_note: str):
     soap_note_prompt = prompt.format(soap_note=soap_note)
     response = structured_llm.invoke(soap_note_prompt)
     return response.CPT
-
-def get_cpt_mapping(df: pd.DataFrame):
-    cpt_mapping = {}
-    for _, row in df.iterrows():
-        cpt = str(row["CPT"]).strip()
-        icd = str(row["ICD-10 Code"]).strip()
-        if cpt not in cpt_mapping:
-            cpt_mapping[cpt] = {"description": row["CPT Description"], "applicable_icds": []}
-        cpt_mapping[cpt]["applicable_icds"].append({icd: row["ICD-10 Description"]})
-    return cpt_mapping
-
 
 def calculate_cpt_units(predicted_cpts, duration_str):
     """
