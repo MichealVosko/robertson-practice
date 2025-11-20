@@ -10,6 +10,7 @@ Do not guess codes that are not in the list.
 Allowed CPTs:
 - 90791: Psychiatric diagnostic evaluation
 - 90832: Psychotherapy, 30 minutes with patient
+- 90834: Psychotherapy, 45 minutes with patient
 - 90837: Psychotherapy, 60 minutes with patient
 - H0004: Behavioral health counseling and therapy, per 15 minutes
 - 96130: Psychological testing evaluation services, first hour
