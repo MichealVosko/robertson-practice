@@ -84,3 +84,8 @@ def calculate_cpt_units(predicted_cpts, duration_str):
                 cpt_with_units.append(f"90840 x{extra_units}")
 
     return cpt_with_units
+
+
+def sort_diagnosis_codes(codes):
+    # F-codes first (e.g., F33.1), everything else after
+    return sorted(codes, key=lambda c: 0 if c.strip().upper().startswith("F") else 1)

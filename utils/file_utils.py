@@ -3,7 +3,7 @@ from utils.cpt_utils import predict_cpt_code, calculate_cpt_units
 from utils.validation_utils import check_note
 from utils.phi_utils import get_phi
 from utils.psych_eval_utils import extract_psych_eval_data
-
+from utils.cpt_utils import sort_diagnosis_codes
 
 def process_file(uploaded_file, cpt_icd_mapping_df):
     file_path = f"data/{uploaded_file.name}"
@@ -30,7 +30,7 @@ def process_file(uploaded_file, cpt_icd_mapping_df):
             service_descriptions.append(service_desc_df["CPT Description"].iloc[0])
 
         # ICD codes from chart
-        diagnosis_codes = phi_data.get("Diagnosis Codes", [])
+        diagnosis_codes = sort_diagnosis_codes(phi_data.get("Diagnosis Codes", []))
         unit_str = f"{units}X" if units > 0 else ""
         row_coding = f"{service_code}--{unit_str}--{', '.join(diagnosis_codes)}"
 
@@ -43,7 +43,7 @@ def process_file(uploaded_file, cpt_icd_mapping_df):
             predicted_cpts.remove("90840")
 
         # ICD extraction from chart
-        diagnosis_codes = phi_data.get("Diagnosis Codes", [])
+        diagnosis_codes = sort_diagnosis_codes(phi_data.get("Diagnosis Codes", []))
 
         # Note validation
         validation_result = check_note(clean, uploaded_file.name)
