@@ -32,7 +32,10 @@ def process_file(uploaded_file, cpt_icd_mapping_df):
         # ICD codes from chart
         diagnosis_codes = sort_diagnosis_codes(phi_data.get("Diagnosis Codes", []))
         unit_str = f"{units}X" if units > 0 else ""
-        row_coding = f"{service_code}--{unit_str}--{', '.join(diagnosis_codes)}"
+        modifier = phi_data.get("Modifier", "")
+        row_coding = (
+            f"{service_code}--{unit_str}--{modifier}--{', '.join(diagnosis_codes)}"
+        )
 
         comments_str = "Check portal for evaluation file"
 
@@ -77,7 +80,9 @@ def process_file(uploaded_file, cpt_icd_mapping_df):
                 service_descriptions.append(service_desc_df["CPT Description"].iloc[0])
 
         # Build coding string using predicted CPT units and ICDs
-        row_coding = f"{', '.join(cpt_with_units)}--{', '.join(diagnosis_codes)}"
+        modifier = phi_data.get("Modifier", "") or ""
+        row_coding = f"{', '.join(cpt_with_units)}--{modifier}--{', '.join(diagnosis_codes)}"
+
 
     # Build row dictionary
     row = {
